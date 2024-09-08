@@ -20,14 +20,6 @@ export const Archery = ({ pitch, yaw }) => {
   const arrowFiredRef = useRef(false);
   const arrowHitRef = useRef(false);
 
-  let bow;
-  let arrow;
-  let target;
-  const velocity = velocityRef.current;
-  const gravity = gravityRef.current;
-  let hasArrowFired = arrowFiredRef.current;
-  let hasArrowHit = arrowHitRef.current;
-
   const handleKeyDown = (event) => {
     switch (event.key) {
       case " ":
@@ -35,20 +27,23 @@ export const Archery = ({ pitch, yaw }) => {
 
         // Get the arrow's world quaternion
         const arrowQuaternion = new Quaternion();
-        arrow.getWorldQuaternion(arrowQuaternion);
+        archerRefs.arrow1Ref.current.getWorldQuaternion(arrowQuaternion);
 
         // Set the initial velocity based on the arrow's orientation
-        velocity
+        velocityRef.current
           .set(0, 0, 1)
           .applyQuaternion(arrowQuaternion)
           .multiplyScalar(initialSpeed);
-        hasArrowFired = true;
+        arrowFiredRef.current = true;
         break;
 
       case "1":
-        console.log(bow.position);
         moveToPosition(
-          [bow.position.x - 3, bow.position.y + 2, bow.position.z],
+          [
+            archerRefs.bowRef.current.position.x - 3,
+            archerRefs.bowRef.current.position.y + 2,
+            archerRefs.bowRef.current.position.z,
+          ],
           new Vector3(0, 0, 0)
         );
         break;
@@ -60,18 +55,22 @@ export const Archery = ({ pitch, yaw }) => {
   };
 
   const reset = () => {
-    hasArrowFired = false;
-    hasArrowHit = false;
-    velocity.set(0, 0, 0);
-    arrow.position.copy(bow.position);
-    arrow.rotation.copy(bow.rotation);
+    arrowFiredRef.current = false;
+    arrowHitRef.current = false;
+    velocityRef.current.set(0, 0, 0);
+    archerRefs.arrow1Ref.current.position.copy(
+      archerRefs.bowRef.current.position
+    );
+    archerRefs.arrow1Ref.current.rotation.copy(
+      archerRefs.bowRef.current.rotation
+    );
 
     resetCamera();
   };
 
   const resetCamera = () => {
     camera.position.set(-1, 1, -3);
-    camera.lookAt(target.position);
+    camera.lookAt(targetRef.current.position);
   };
 
   const moveToPosition = (position, targetVector, duration = 0.5) => {
@@ -104,17 +103,18 @@ export const Archery = ({ pitch, yaw }) => {
   };
 
   useEffect(() => {
-    console.log("useEffect");
-    bow = archerRefs.bowRef.current;
-    arrow = archerRefs.arrow1Ref.current;
-    target = targetRef.current;
+    console.log("mounted");
 
-    target.position.set(0, 0.5, 30);
+    targetRef.current.position.set(0, 0.5, 30);
     resetCamera();
 
-    if (bow && arrow) {
-      arrow.position.copy(bow.position);
-      arrow.rotation.copy(bow.rotation);
+    if (archerRefs.bowRef.current && archerRefs.arrow1Ref.current) {
+      archerRefs.arrow1Ref.current.position.copy(
+        archerRefs.bowRef.current.position
+      );
+      archerRefs.arrow1Ref.current.rotation.copy(
+        archerRefs.bowRef.current.rotation
+      );
     }
 
     window.addEventListener("keydown", handleKeyDown);
@@ -122,50 +122,69 @@ export const Archery = ({ pitch, yaw }) => {
       console.log("unmounted");
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [scene, camera, pitch]);
+  }, [scene, camera]);
 
   useFrame((state, delta) => {
     const scaledDelta = delta * 0.8;
 
-    if (bow && arrow && !hasArrowFired) {
-      bow.rotation.set(pitch, yaw, 0);
-      arrow.rotation.copy(bow.rotation);
+    if (
+      archerRefs.bowRef.current &&
+      archerRefs.arrow1Ref.current &&
+      !arrowFiredRef.current
+    ) {
+      archerRefs.bowRef.current.rotation.set(pitch, yaw, 0);
+      archerRefs.arrow1Ref.current.rotation.copy(
+        archerRefs.bowRef.current.rotation
+      );
     }
 
-    if (arrow && !hasArrowHit && hasArrowFired) {
+    if (
+      archerRefs.arrow1Ref.current &&
+      !arrowHitRef.current &&
+      arrowFiredRef.current
+    ) {
       // Apply gravity to velocity
-      velocity.addScaledVector(gravity, scaledDelta);
+      velocityRef.current.addScaledVector(gravityRef.current, scaledDelta);
 
       // Update arrow position
-      arrow.position.addScaledVector(velocity, scaledDelta);
+      archerRefs.arrow1Ref.current.position.addScaledVector(
+        velocityRef.current,
+        scaledDelta
+      );
 
       // Calculate direction of travel
-      const direction = velocity.clone().normalize();
+      const direction = velocityRef.current.clone().normalize();
 
       // Update arrow rotation to match direction of travel
       const quaternion = new Quaternion();
       quaternion.setFromUnitVectors(new Vector3(0, 0, 1), direction);
-      arrow.quaternion.copy(quaternion);
+      archerRefs.arrow1Ref.current.quaternion.copy(quaternion);
 
       // Check for collision with target
-      const arrowTipPosition = arrow.position
+      const arrowTipPosition = archerRefs.arrow1Ref.current.position
         .clone()
         .add(direction.clone().multiplyScalar(0.3)); // Calculate arrow tip position
-      const targetBox = new Box3().setFromObject(target);
+      const targetBox = new Box3().setFromObject(targetRef.current);
 
       if (targetBox.containsPoint(arrowTipPosition)) {
         console.log("Hit!");
 
-        hasArrowHit = true;
-        velocity.set(0, 0, 0);
+        arrowHitRef.current = true;
+        velocityRef.current.set(0, 0, 0);
 
         moveToPosition(
-          [target.position.x - 3, target.position.y + 2, target.position.z - 1],
-          target.position
+          [
+            targetRef.current.position.x - 3,
+            targetRef.current.position.y + 2,
+            targetRef.current.position.z - 1,
+          ],
+          targetRef.current.position
         );
       }
 
-      if (arrow.position.z > target.position.z) {
+      if (
+        archerRefs.arrow1Ref.current.position.z > targetRef.current.position.z
+      ) {
         console.log("arrow past target");
         reset();
       }

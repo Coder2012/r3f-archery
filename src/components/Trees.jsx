@@ -40,6 +40,7 @@ export const InstancedTrees = ({ points }) => {
 export const Trees = ({ maskTexture, terrainScale }) => {
   // Use useMemo to memoize points calculation and avoid unnecessary recalculations
   const points = useMemo(() => {
+    console.log("terrainScale", terrainScale);
     if (!maskTexture) {
       return [];
     }
@@ -54,7 +55,7 @@ export const Trees = ({ maskTexture, terrainScale }) => {
 
     const sampler = new PoissonDiskSampling({
       shape: [width, height],
-      minDistance: 40, // Increase to reduce number of points if needed
+      minDistance: 20, // Increase to reduce number of points if needed
       tries: 30,
     });
 
@@ -77,7 +78,7 @@ export const Trees = ({ maskTexture, terrainScale }) => {
         return null;
       })
       .filter(Boolean); // Remove null entries
-  }, [maskTexture, terrainScale]); // Dependencies ensure memoization
+  }, [maskTexture]); // Dependencies ensure memoization
 
   return <InstancedTrees points={points} />;
 };
