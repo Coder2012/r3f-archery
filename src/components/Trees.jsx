@@ -1,5 +1,6 @@
-import { useMemo } from "react";
-import { Instances, Instance, useGLTF } from "@react-three/drei";
+import { useMemo, useRef } from "react";
+import { Instances, Instance, useGLTF, Plane } from "@react-three/drei";
+import * as THREE from "three";
 import PoissonDiskSampling from "poisson-disk-sampling";
 
 // Function to extract pixel data from the texture
@@ -20,65 +21,115 @@ const getImageData = (texture) => {
 };
 
 // Component for rendering instanced trees
-export const InstancedTrees = ({ points }) => {
+export const InstancedTrees = ({ positions, scales }) => {
   const { nodes, materials } = useGLTF("/tree.glb");
 
   return (
     <Instances
-      limit={points.length}
+      limit={positions.length}
       geometry={nodes.Tree.geometry}
       material={materials.TreeMaterial}
     >
-      {points.map((point, index) => (
-        <Instance key={index} position={point} scale={[2, 2, 2]} />
+      {positions.map((position, index) => (
+        <Instance key={index} position={position} scale={scales[index]} />
       ))}
     </Instances>
   );
 };
 
-// Main Trees component to calculate tree positions based on texture
-export const Trees = ({ maskTexture, terrainScale }) => {
-  // Use useMemo to memoize points calculation and avoid unnecessary recalculations
-  const points = useMemo(() => {
-    console.log("terrainScale", terrainScale);
-    if (!maskTexture) {
-      return [];
+// Main Trees component
+export const Trees = ({ maskTexture, displacementTexture, terrainScale }) => {
+  const terrainRef = useRef();
+
+  // Generate positions and scales
+  const { positions, scales } = useMemo(() => {
+    if (
+      !maskTexture ||
+      !maskTexture.image ||
+      !displacementTexture ||
+      !displacementTexture.image
+    ) {
+      return { positions: [], scales: [] };
     }
 
-    const data = getImageData(maskTexture);
+    const maskData = getImageData(maskTexture);
+    const displacementData = getImageData(displacementTexture);
+
     const width = maskTexture.image.width;
     const height = maskTexture.image.height;
 
-    // Define the terrain size you are matching to
     const terrainWidth = terrainScale[0];
     const terrainHeight = terrainScale[1];
+    const displacementScale = terrainScale[2];
 
+    // Generate sampled points in world coordinates
     const sampler = new PoissonDiskSampling({
-      shape: [width, height],
-      minDistance: 20, // Increase to reduce number of points if needed
+      shape: [terrainWidth, terrainHeight],
+      minDistance: 1,
       tries: 30,
     });
 
-    // Generate sampled points
     const sampledPoints = sampler.fill();
-    return sampledPoints
-      .map(([x, z]) => {
-        const texX = Math.floor(x);
-        const texY = Math.floor(z);
-        const index = (texY * width + texX) * 4;
-        const maskValue = data[index];
 
-        // Scale the coordinates to match the terrain
-        const scaledX = (x / width) * terrainWidth - terrainWidth / 2;
-        const scaledZ = (z / height) * terrainHeight - terrainHeight / 2;
+    const positions = [];
+    const scales = [];
 
-        if (maskValue > 200) {
-          return [scaledX, 0, scaledZ];
-        }
-        return null;
-      })
-      .filter(Boolean); // Remove null entries
-  }, [maskTexture]); // Dependencies ensure memoization
+    sampledPoints.forEach(([x, z]) => {
+      // Adjust x and z to be centered around (0, 0)
+      const scaledX = x - terrainWidth / 2;
+      const scaledZ = z - terrainHeight / 2;
 
-  return <InstancedTrees points={points} />;
+      // Map world coordinates to UV coordinates
+      const u = (scaledX + terrainWidth / 2) / terrainWidth;
+      const v = (scaledZ + terrainHeight / 2) / terrainHeight;
+
+      // Invert v if necessary
+      const vTex = v;
+
+      // Map UV coordinates to texture pixel coordinates
+      const texX = Math.floor(u * (width - 1));
+      const texY = Math.floor(vTex * (height - 1));
+
+      const index = (texY * width + texX) * 4;
+
+      const maskValue = maskData[index];
+      const displacementValue = displacementData[index];
+
+      if (maskValue > 240) {
+        // Normalize the displacement value
+        const normalizedDisplacement = displacementValue / 255;
+
+        // Calculate the actual y-coordinate
+        const scaledY = normalizedDisplacement * displacementScale; // Adjust as needed
+
+        // Calculate tree scale
+        const treeScaleFactor = (maskValue / 255) * (Math.random() * 1) + 2; // Adjust as needed
+        const treeScale = [treeScaleFactor, treeScaleFactor, treeScaleFactor];
+
+        positions.push([scaledX, scaledY, scaledZ]);
+        scales.push(treeScale);
+      }
+    });
+
+    return { positions, scales };
+  }, [maskTexture, displacementTexture, terrainScale]);
+
+  return (
+    <>
+      <Plane
+        ref={terrainRef}
+        args={[terrainScale[0], terrainScale[1], 128, 128]}
+        rotation={[-Math.PI / 2, 0, 0]}
+      >
+        <meshStandardMaterial
+          displacementMap={displacementTexture}
+          displacementScale={terrainScale[2]}
+          map={maskTexture}
+          side={THREE.DoubleSide}
+        />
+      </Plane>
+
+      <InstancedTrees positions={positions} scales={scales} />
+    </>
+  );
 };

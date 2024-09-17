@@ -30,13 +30,18 @@ const App = () => {
       <Controls onChange={(angle) => setAngle(-angle * (Math.PI / 180))} />
       <Canvas shadows camera={{ fov: 50 }}>
         <OrbitControls />
-        <Terrain terrainRef={terrainRef} />
-        <Trees
+        {/* <Terrain terrainRef={terrainRef} /> */}
+        {/* <Trees
           maskTexture={maskTexture}
           terrainRef={terrainRef}
           terrainScale={[50, 50]}
+        /> */}
+        <Trees
+          maskTexture={maskTexture}
+          displacementTexture={maskTexture}
+          terrainScale={[100, 100, 5]} // Adjust these values as needed
         />
-        <TextureDebug texture={maskTexture} terrainScale={[50, 50]} />
+        {/* <TextureDebug texture={maskTexture} terrainScale={[50, 50]} /> */}
         <Archery pitch={angle} yaw={yaw} />
         <Perf
           position="top-left"
