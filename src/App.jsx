@@ -25,19 +25,22 @@ const App = () => {
     <>
       <Controls onChange={(angle) => setAngle(-angle * (Math.PI / 180))} />
       <Canvas shadows camera={{ fov: 50 }}>
+        <fog attach="fog" args={["#fff", 5, 70]} />
         <OrbitControls />
-        {/* <directionalLight
-          castShadow
-          position={[5, 15, -5]}
-          shadow-mapSize-width={1024}
-          shadow-mapSize-height={1024}
-          shadow-camera-far={50}
-          shadow-camera-left={-10}
-          shadow-camera-right={10}
-          shadow-camera-top={10}
-          shadow-camera-bottom={-10}
-        /> */}
         <Environment preset="sunset" />
+        <directionalLight
+          position={[10, 20, 10]}
+          intensity={2}
+          castShadow
+          shadow-mapSize-width={2048}
+          shadow-mapSize-height={2048}
+          shadow-camera-near={0.1}
+          shadow-camera-far={500}
+          shadow-camera-left={-100}
+          shadow-camera-right={100}
+          shadow-camera-top={100}
+          shadow-camera-bottom={-100}
+        />
         <Trees terrainScale={terrainScale} />
         {/* <TextureDebug texture={maskTexture} terrainScale={[50, 50]} /> */}
         <Archery pitch={angle} yaw={yaw} />

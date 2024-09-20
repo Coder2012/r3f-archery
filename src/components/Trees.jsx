@@ -32,6 +32,8 @@ export const InstancedTrees = ({ positions, scales }) => {
 
   return (
     <Instances
+      castShadow
+      receiveShadow
       limit={positions.length}
       geometry={nodes.Tree.geometry}
       material={materials.TreeMaterial}
@@ -126,11 +128,13 @@ export const Trees = ({ map, normalMap, displacementMap, terrainScale }) => {
         ref={terrainRef}
         args={[terrainScale[0], terrainScale[1], 128, 128]}
         rotation={[-Math.PI / 2, 0, 0]}
+        receiveShadow={true}
       >
         <meshStandardMaterial
           {...terrainTextures}
           displacementScale={terrainScale[2]}
           side={THREE.DoubleSide}
+          receiveShadow={true}
         />
       </Plane>
 
