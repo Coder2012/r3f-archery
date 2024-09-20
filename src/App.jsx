@@ -1,12 +1,10 @@
-import React, { useRef } from "react";
+import React from "react";
 import { Perf } from "r3f-perf";
-import { TextureLoader } from "three";
-import { Canvas, useLoader } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { Archery } from "./components/Archery";
 import { Controls } from "./components/Controls";
 import { Trees } from "./components/Trees";
-import { OrbitControls } from "@react-three/drei";
-import { Terrain } from "./components/Terrain";
+import { Environment, OrbitControls } from "@react-three/drei";
 
 const TextureDebug = ({ texture, terrainScale }) => {
   return (
@@ -18,9 +16,7 @@ const TextureDebug = ({ texture, terrainScale }) => {
 };
 
 const App = () => {
-  const maskTexture = useLoader(TextureLoader, "MaskTexture.png");
-  const terrainRef = useRef();
-
+  const terrainScale = React.useMemo(() => [100, 100, 3], []);
   // const pitch = -13 * (Math.PI / 180);
   const yaw = 0 * (Math.PI / 180);
   const [angle, setAngle] = React.useState(0);
@@ -30,26 +26,28 @@ const App = () => {
       <Controls onChange={(angle) => setAngle(-angle * (Math.PI / 180))} />
       <Canvas shadows camera={{ fov: 50 }}>
         <OrbitControls />
-        {/* <Terrain terrainRef={terrainRef} /> */}
-        {/* <Trees
-          maskTexture={maskTexture}
-          terrainRef={terrainRef}
-          terrainScale={[50, 50]}
+        {/* <directionalLight
+          castShadow
+          position={[5, 15, -5]}
+          shadow-mapSize-width={1024}
+          shadow-mapSize-height={1024}
+          shadow-camera-far={50}
+          shadow-camera-left={-10}
+          shadow-camera-right={10}
+          shadow-camera-top={10}
+          shadow-camera-bottom={-10}
         /> */}
-        <Trees
-          maskTexture={maskTexture}
-          displacementTexture={maskTexture}
-          terrainScale={[100, 100, 5]} // Adjust these values as needed
-        />
+        <Environment preset="sunset" />
+        <Trees terrainScale={terrainScale} />
         {/* <TextureDebug texture={maskTexture} terrainScale={[50, 50]} /> */}
         <Archery pitch={angle} yaw={yaw} />
         <Perf
           position="top-left"
           style={{
-            transform: "scale(1.5) translate(0, 20px)", // Scale up and adjust downwards
+            transform: "scale(1.5) translate(0, 20px)",
             zIndex: 1000,
-            top: "10px", // Adjust top position if necessary
-            left: "10px", // Adjust left position if needed
+            top: "10px",
+            left: "10px",
           }}
           matrixAutoUpdate
         />

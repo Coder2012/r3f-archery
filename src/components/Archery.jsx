@@ -105,7 +105,7 @@ export const Archery = ({ pitch, yaw }) => {
   useEffect(() => {
     console.log("mounted");
 
-    targetRef.current.position.set(0, 0.5, 30);
+    targetRef.current.position.set(0, 1, 30);
     resetCamera();
 
     if (archerRefs.bowRef.current && archerRefs.arrow1Ref.current) {
@@ -193,28 +193,8 @@ export const Archery = ({ pitch, yaw }) => {
 
   return (
     <>
-      <directionalLight
-        castShadow
-        position={[5, 15, -5]}
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
-        shadow-camera-far={50}
-        shadow-camera-left={-10}
-        shadow-camera-right={10}
-        shadow-camera-top={10}
-        shadow-camera-bottom={-10}
-      />
       <Archer {...archerRefs} />
       <Target targetRef={targetRef} />
-      <mesh
-        receiveShadow
-        scale={[10, 100, 1]}
-        rotation-x={-Math.PI / 2}
-        position={[0, -0.3, 0]}
-      >
-        <planeGeometry />
-        <meshStandardMaterial color="#628297" />
-      </mesh>
     </>
   );
 };
