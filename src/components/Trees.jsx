@@ -46,7 +46,7 @@ export const InstancedTrees = ({ positions, scales }) => {
 };
 
 // Main Trees component
-export const Trees = ({ map, normalMap, displacementMap, terrainScale }) => {
+export const Trees = ({ terrainScale }) => {
   const terrainRef = useRef();
   const terrainTextures = useTexture({
     map: "snow_02_diff_2k.png",

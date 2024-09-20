@@ -8,8 +8,53 @@ body {
 }
 
 .controls {
+  background-color: rgb(0 0 0 / 20%);
   position: absolute;
   left: 20px;
   bottom: 20px;
   z-index: 1;
+}
+
+.camera-presets {
+  position: absolute;
+  top: 50%;
+  transform: translate(50%, 50%);
+  z-index: 1;
+}
+
+.camera-preset-button {
+  margin: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  outline: none; /* Remove focus outline */
+  transition: transform 0.2s; /* Add a slight scale effect on hover */
+}
+
+.camera-preset-button:hover {
+  transform: scale(1.05);
+}
+
+.camera-icon {
+  fill: black; /* Default icon color */
+  transition: fill 0.2s;
+}
+
+.camera-preset-button:hover .camera-icon {
+  fill: #007bff; /* Icon color on hover (e.g., blue) */
+}
+
+.preset-name {
+  font-size: 22px; /* Make the text bigger */
+  font-style: bold;
+  margin-top: 8px; /* Space between the icon and text */
+  color: black; /* Default text color */
+  transition: color 0.2s;
+}
+
+.camera-preset-button:hover .preset-name {
+  color: #007bff; /* Text color on hover (match the icon color) */
 }

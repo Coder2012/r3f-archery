@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { Target } from "./Target";
 import { Archer } from "./Archer";
 
-export const Archery = ({ pitch, yaw }) => {
+export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
   const { scene, camera } = useThree();
   const targetRef = useRef();
 
@@ -23,13 +23,11 @@ export const Archery = ({ pitch, yaw }) => {
   const handleKeyDown = (event) => {
     switch (event.key) {
       case " ":
-        const initialSpeed = 27; // Adjust this value as needed
+        const initialSpeed = 27;
 
-        // Get the arrow's world quaternion
         const arrowQuaternion = new Quaternion();
         archerRefs.arrow1Ref.current.getWorldQuaternion(arrowQuaternion);
 
-        // Set the initial velocity based on the arrow's orientation
         velocityRef.current
           .set(0, 0, 1)
           .applyQuaternion(arrowQuaternion)
@@ -50,6 +48,10 @@ export const Archery = ({ pitch, yaw }) => {
 
       case "r":
         reset();
+        resetCamera();
+        break;
+      case "s":
+        reset();
         break;
     }
   };
@@ -64,8 +66,6 @@ export const Archery = ({ pitch, yaw }) => {
     archerRefs.arrow1Ref.current.rotation.copy(
       archerRefs.bowRef.current.rotation
     );
-
-    resetCamera();
   };
 
   const resetCamera = () => {
@@ -73,22 +73,20 @@ export const Archery = ({ pitch, yaw }) => {
     camera.lookAt(targetRef.current.position);
   };
 
-  const moveToPosition = (position, targetVector, duration = 0.5) => {
-    // Store the initial quaternion
+  const moveToPosition = (position, targetVector, duration = 1.5) => {
+    orbitControlsRef.current.enabled = false;
     const initialQuaternion = camera.quaternion.clone();
 
-    // Move the camera to the target position first
     gsap.to(camera.position, {
       x: position[0],
       y: position[1],
       z: position[2],
       duration: duration,
+      ease: "power1.inOut",
       onUpdate: function () {
-        // Calculate the target quaternion by making the camera look at the target
         camera.lookAt(targetVector);
         const targetQuaternion = camera.quaternion.clone();
 
-        // Slerp between the initial and target quaternion
         camera.quaternion.slerpQuaternions(
           initialQuaternion,
           targetQuaternion,
@@ -96,8 +94,10 @@ export const Archery = ({ pitch, yaw }) => {
         );
       },
       onComplete: () => {
-        // Ensure final orientation is correct after animation
         camera.lookAt(targetVector);
+        orbitControlsRef.current.target.copy(targetVector);
+        orbitControlsRef.current.update();
+        orbitControlsRef.current.enabled = true;
       },
     });
   };
@@ -143,27 +143,22 @@ export const Archery = ({ pitch, yaw }) => {
       !arrowHitRef.current &&
       arrowFiredRef.current
     ) {
-      // Apply gravity to velocity
       velocityRef.current.addScaledVector(gravityRef.current, scaledDelta);
 
-      // Update arrow position
       archerRefs.arrow1Ref.current.position.addScaledVector(
         velocityRef.current,
         scaledDelta
       );
 
-      // Calculate direction of travel
       const direction = velocityRef.current.clone().normalize();
 
-      // Update arrow rotation to match direction of travel
       const quaternion = new Quaternion();
       quaternion.setFromUnitVectors(new Vector3(0, 0, 1), direction);
       archerRefs.arrow1Ref.current.quaternion.copy(quaternion);
 
-      // Check for collision with target
       const arrowTipPosition = archerRefs.arrow1Ref.current.position
         .clone()
-        .add(direction.clone().multiplyScalar(0.3)); // Calculate arrow tip position
+        .add(direction.clone().multiplyScalar(0.3));
       const targetBox = new Box3().setFromObject(targetRef.current);
 
       if (targetBox.containsPoint(arrowTipPosition)) {
@@ -175,7 +170,7 @@ export const Archery = ({ pitch, yaw }) => {
         moveToPosition(
           [
             targetRef.current.position.x - 3,
-            targetRef.current.position.y + 2,
+            targetRef.current.position.y,
             targetRef.current.position.z - 1,
           ],
           targetRef.current.position
