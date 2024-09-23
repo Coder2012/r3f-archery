@@ -13,15 +13,15 @@ const App = () => {
   const [pitch, setPitch] = useState(0);
 
   const cameraPresets = {
-    Preset1: {
-      position: new Vector3(0, 5, 10),
-      target: new Vector3(0, 0, 0),
+    Bow: {
+      position: new Vector3(.10, .60, -.7),
+      target: new Vector3(.10, .54, 0.05),
     },
-    Preset2: {
-      position: new Vector3(2, 2, 2),
-      target: new Vector3(0, 0, 0),
+    Side: {
+      position: new Vector3(-21, 8, 14),
+      target: new Vector3(0, 3, 14),
     },
-    Preset3: {
+    Above: {
       position: new Vector3(0, 8, 0),
       target: new Vector3(-0.17, 1.03, 26.24),
     },

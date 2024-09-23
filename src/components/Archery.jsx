@@ -69,8 +69,9 @@ export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
   };
 
   const resetCamera = () => {
-    camera.position.set(-1, 1, -3);
-    camera.lookAt(targetRef.current.position);
+    camera.position.set(-35, 21, -56);
+    camera.lookAt(new Vector3(-5, 2.2, -9));
+    moveToPosition([-1, 1, -3], targetRef.current.position, 8);
   };
 
   const moveToPosition = (position, targetVector, duration = 1.5) => {
@@ -106,7 +107,7 @@ export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
     console.log("mounted");
 
     targetRef.current.position.set(0, 1, 30);
-    resetCamera();
+    // resetCamera();
 
     if (archerRefs.bowRef.current && archerRefs.arrow1Ref.current) {
       archerRefs.arrow1Ref.current.position.copy(
@@ -125,7 +126,7 @@ export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
   }, [scene, camera]);
 
   useFrame((state, delta) => {
-    const scaledDelta = delta * 0.8;
+    const scaledDelta = delta;
 
     if (
       archerRefs.bowRef.current &&
@@ -178,7 +179,7 @@ export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
       }
 
       if (
-        archerRefs.arrow1Ref.current.position.z > targetRef.current.position.z
+        archerRefs.arrow1Ref.current.position.z > targetRef.current.position.z + 50
       ) {
         console.log("arrow past target");
         reset();

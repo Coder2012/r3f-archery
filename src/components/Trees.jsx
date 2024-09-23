@@ -49,11 +49,21 @@ export const InstancedTrees = ({ positions, scales }) => {
 export const Trees = ({ terrainScale }) => {
   const terrainRef = useRef();
   const terrainTextures = useTexture({
-    map: "snow_02_diff_2k.png",
-    normalMap: "snow_02_nor_gl_2k.png",
+    map: "Snow_001_COLOR.jpg",
+    normalMap: "Snow_001_NORM.jpg",
     displacementMap: "MaskTexture.png",
   });
-  console.log(terrainTextures);
+  
+  useMemo(() => { 
+    ['map', 'normalMap'].forEach((key) => {
+      const texture = terrainTextures[key];
+      if (texture) {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(terrainScale[0], terrainScale[1]);
+      }
+    });
+  }, [terrainTextures, terrainScale]);
 
   // Generate positions and scales
   const { positions, scales } = useMemo(() => {
@@ -135,6 +145,7 @@ export const Trees = ({ terrainScale }) => {
           displacementScale={terrainScale[2]}
           side={THREE.DoubleSide}
           receiveShadow={true}
+          // wireframe={true}
         />
       </Plane>
 
