@@ -28,7 +28,7 @@ export const Scene = ({ orbitControlsRef, pitch, yaw }) => {
   return (
     <>
       <OrbitControls ref={orbitControlsRef} />
-      <Environment preset="sunset" />
+      <Environment files="/venice_sunset_1k.hdr" />
       <directionalLight
         position={[10, 20, 10]}
         intensity={2}
