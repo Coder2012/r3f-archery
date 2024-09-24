@@ -68,9 +68,13 @@ export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
     );
   };
 
-  const resetCamera = () => {
+  const initCamera = () => {
     camera.position.set(-35, 21, -56);
     camera.lookAt(new Vector3(-5, 2.2, -9));
+  }
+
+  const resetCamera = () => {
+    initCamera();
     moveToPosition([-1, 1, -3], targetRef.current.position, 8);
   };
 
@@ -107,7 +111,7 @@ export const Archery = ({ pitch, yaw, orbitControlsRef }) => {
     console.log("mounted");
 
     targetRef.current.position.set(0, 1, 30);
-    // resetCamera();
+    initCamera();
 
     if (archerRefs.bowRef.current && archerRefs.arrow1Ref.current) {
       archerRefs.arrow1Ref.current.position.copy(

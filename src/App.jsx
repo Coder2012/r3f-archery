@@ -48,7 +48,7 @@ const App = () => {
       <Canvas shadows camera={{ fov: 50 }}>
         <fog attach="fog" args={["#fff", 5, 70]} />
         <Scene orbitControlsRef={orbitControlsRef} pitch={pitch} yaw={yaw} />
-        <Perf
+        {/* <Perf
           position="top-left"
           style={{
             transform: "scale(1.5) translate(0, 0)",
@@ -57,7 +57,7 @@ const App = () => {
             left: "100px",
           }}
           matrixAutoUpdate
-        />
+        /> */}
       </Canvas>
     </>
   );
